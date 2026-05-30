@@ -198,7 +198,7 @@ Berikut adalah status pengujian komponen kecerdasan buatan (AI) dan mesin render
 
 ## 🤝 Mari Berkontribusi & Roadmap Pengembangan (Upcoming Features)
 
-Proyek **AutoVideo-RVC** bersifat open-source! Kontribusi dari para pengembang, antusias AI, dan kreator konten sangat diharapkan untuk mempercepat adopsi dan memperkaya fitur aplikasi. 
+Proyek **AutoVideo-RVC** bersifat open-source! Kontribusi dari para developer, AI Enthusiast, dan Content Creator sangat diharapkan untuk mempercepat adopsi dan memperkaya fitur aplikasi. 
 
 ### 💡 Rencana Pengembangan Terdekat (Official Roadmap):
 * [ ] **🔀 Layout Editor Drag-n-Drop**: Antarmuka visual interaktif berbasis simulator layar HP 9:16 di PySide6, memungkinkan penataan posisi subtitle, logo watermark, dan stiker promosi cukup dengan digeser (*drag-and-drop*).
@@ -209,6 +209,7 @@ Proyek **AutoVideo-RVC** bersifat open-source! Kontribusi dari para pengembang, 
   * [ ] Lightweight Linux AppImage & executable binary
   * [ ] Fully packaged macOS `.dmg` installer & `.app` bundle
 * [ ] **🎨 SaaS-Themed Iconography & Logo Update**: Pembaruan paket ikon antarmuka dan logo aplikasi utama bergaya minimalis modern untuk memperkuat identitas branding yang lebih premium.
+* [ ] **☁️ Cloud Trainer Bridge (Colab Optimization)**: Penyempurnaan alur integrasi ekspor dataset satu klik dan optimalisasi lingkungan notebook Google Colab (`RVC_Colab_Trainer.ipynb`) agar 100% kompatibel dan bebas kendala instalasi.
 * [ ] **🎙️ Local Voice Cloning UI (1-Click Trainer)**: Penambahan dasbor rekaman dataset mandiri di dalam aplikasi desktop, mempermudah pembuatan klon suara kustom secara instan dan 100% offline.
 * [ ] **🎯 AI B-Roll Content-Aware Tagging**: Integrasi model visi komputer ringan (seperti YOLOv8 / MobileNet) untuk memindai dan menandai klip video mentah, sehingga sistem secara otomatis mencocokkan visual B-roll dengan kata atau adegan yang sedang diucapkan dalam teks naskah.
 * [ ] **⚡ Serverless Cloud Rendering Pipeline**: Opsi pengalihan antrean rendering MoviePy ke penyedia GPU cloud serverless (seperti RunPod / Replicate), menjadi solusi bagi pengguna laptop/PC berspesifikasi rendah tanpa kartu grafis NVIDIA RTX.
