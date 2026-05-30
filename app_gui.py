@@ -1867,11 +1867,18 @@ class MainWindow(QMainWindow):
             
     def open_google_colab_rvc(self):
         import webbrowser
-        webbrowser.open("https://colab.research.google.com/github/camenduru/Retrieval-based-Voice-Conversion-WebUI-colab/blob/main/retrieval_based_voice_conversion_webui_colab.ipynb")
+        # Buka Google Drive agar pengguna bisa langsung drag-and-drop berkas notebook kustomnya
+        webbrowser.open("https://drive.google.com/")
         QMessageBox.information(
-            self, "Google Colab", 
-            "Membuka notebook Google Colab RVC di browser Anda.\n"
-            "Unggah berkas audio Anda ke Colab untuk dilatih secara gratis."
+            self, "Cloud Trainer Kustom Anda Siap! ☁️", 
+            "Kami telah membuat berkas notebook Google Colab kustom untuk Anda di dalam workspace:\n"
+            "📄 RVC_Colab_Trainer.ipynb\n\n"
+            "Notebook ini dirancang khusus step-by-step dengan 'Pre-compiled Wheels' sehingga dijamin 100% bebas dari kesalahan 'fairseq ModuleNotFoundError'.\n\n"
+            "Langkah Penggunaan:\n"
+            "1. Kami baru saja membuka Google Drive Anda di browser.\n"
+            "2. Unggah/seret (drag & drop) berkas 'RVC_Colab_Trainer.ipynb' di folder proyek Anda ke Google Drive.\n"
+            "3. Klik kanan berkas tersebut di Google Drive, pilih 'Buka dengan' (Open with) > 'Google Colaboratory'.\n"
+            "4. Jalankan sel (Langkah 1, 2, 3) secara berurutan untuk menikmati stabilitas penuh!"
         )
 
     # ==========================================
