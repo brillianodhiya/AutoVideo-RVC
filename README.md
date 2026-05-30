@@ -201,17 +201,19 @@ Berikut adalah status pengujian komponen kecerdasan buatan (AI) dan mesin render
 Proyek **AutoVideo-RVC** bersifat open-source! Kontribusi dari para pengembang, antusias AI, dan kreator konten sangat diharapkan untuk mempercepat adopsi dan memperkaya fitur aplikasi. 
 
 ### 💡 Rencana Pengembangan Terdekat (Official Roadmap):
-* **🔀 Layout Editor Drag-n-Drop**: Antarmuka visual interaktif berbasis simulator layar HP 9:16 di PySide6, memungkinkan penataan posisi subtitle, logo watermark, dan stiker promosi cukup dengan digeser (*drag-and-drop*).
-* **🌐 Dukungan Multi-Bahasa (Upcoming)**: Penambahan suara narator selain Bahasa Indonesia (seperti Bahasa Inggris, Spanyol, Jepang, dll.) lengkap dengan penyelarasan tanda batas kata (*word boundary tracking*) untuk subtitle dinamis.
-* **🤖 Integrasi Multi-AI Provider**: Akses langsung ke model API eksternal papan atas seperti DeepSeek-V3, Anthropic Claude, serta pustaka inferensi lokal super cepat menggunakan Llama.cpp (GGUF).
-* **🎨 SaaS-Themed Iconography & Logo Update**: Pembaruan paket ikon antarmuka dan logo aplikasi utama bergaya minimalis modern untuk memperkuat identitas branding yang lebih premium.
-
-### 🌟 Fitur Rekomendasi Masa Depan (Agent Recommendations):
-* **🎙️ Local Voice Cloning UI (1-Click Trainer)**: Penambahan dasbor rekaman dataset mandiri di dalam aplikasi desktop, mempermudah pembuatan klon suara kustom secara instan dan 100% offline.
-* **🎯 AI B-Roll Content-Aware Tagging**: Integrasi model visi komputer ringan (seperti YOLOv8 / MobileNet) untuk memindai dan menandai klip video mentah, sehingga sistem secara otomatis mencocokkan visual B-roll dengan kata atau adegan yang sedang diucapkan dalam teks naskah.
-* **⚡ Serverless Cloud Rendering Pipeline**: Opsi pengalihan antrean rendering MoviePy ke penyedia GPU cloud serverless (seperti RunPod / Replicate), menjadi solusi bagi pengguna laptop/PC berspesifikasi rendah tanpa kartu grafis NVIDIA RTX.
-* **🎵 Smart Sound FX Auto-Stitcher**: Penyisipan efek suara transisi estetik secara otomatis (seperti *woosh*, *pop*, atau *camera click*) tepat di setiap pergantian potongan klip B-roll atau transisi antarslide subtitle.
-* **📅 Automated Social Media Scheduler**: Dasbor penjadwalan konten pasca-render yang terhubung langsung dengan API resmi TikTok, Instagram, dan YouTube Shorts untuk publikasi otomatis dari komputer.
+* [ ] **🔀 Layout Editor Drag-n-Drop**: Antarmuka visual interaktif berbasis simulator layar HP 9:16 di PySide6, memungkinkan penataan posisi subtitle, logo watermark, dan stiker promosi cukup dengan digeser (*drag-and-drop*).
+* [ ] **🌐 Dukungan Multi-Bahasa (Upcoming)**: Penambahan suara narator selain Bahasa Indonesia (seperti Bahasa Inggris, Spanyol, Jepang, dll.) lengkap dengan penyelarasan tanda batas kata (*word boundary tracking*) untuk subtitle dinamis.
+* [ ] **🤖 Integrasi Multi-AI Provider**: Akses langsung ke model API eksternal papan atas seperti DeepSeek-V3, Anthropic Claude, serta pustaka inferensi lokal super cepat menggunakan Llama.cpp (GGUF).
+* [ ] **📦 Portable Standalone Executables**: Pembangunan paket distribusi aplikasi mandiri (*standalone executable*) yang super praktis dan dioptimalkan ukurannya, guna mempermudah distribusi luas bagi pengguna non-teknis tanpa perlu instalasi Python/venv rumit:
+  * [ ] Portable Windows Standalone Installer & `.exe`
+  * [ ] Lightweight Linux AppImage & executable binary
+  * [ ] Fully packaged macOS `.dmg` installer & `.app` bundle
+* [ ] **🎨 SaaS-Themed Iconography & Logo Update**: Pembaruan paket ikon antarmuka dan logo aplikasi utama bergaya minimalis modern untuk memperkuat identitas branding yang lebih premium.
+* [ ] **🎙️ Local Voice Cloning UI (1-Click Trainer)**: Penambahan dasbor rekaman dataset mandiri di dalam aplikasi desktop, mempermudah pembuatan klon suara kustom secara instan dan 100% offline.
+* [ ] **🎯 AI B-Roll Content-Aware Tagging**: Integrasi model visi komputer ringan (seperti YOLOv8 / MobileNet) untuk memindai dan menandai klip video mentah, sehingga sistem secara otomatis mencocokkan visual B-roll dengan kata atau adegan yang sedang diucapkan dalam teks naskah.
+* [ ] **⚡ Serverless Cloud Rendering Pipeline**: Opsi pengalihan antrean rendering MoviePy ke penyedia GPU cloud serverless (seperti RunPod / Replicate), menjadi solusi bagi pengguna laptop/PC berspesifikasi rendah tanpa kartu grafis NVIDIA RTX.
+* [ ] **🎵 Smart Sound FX Auto-Stitcher**: Penyisipan efek suara transisi estetik secara otomatis (seperti *woosh*, *pop*, atau *camera click*) tepat di setiap pergantian potongan klip B-roll atau transisi antarslide subtitle.
+* [ ] **📅 Automated Social Media Scheduler**: Dasbor penjadwalan konten pasca-render yang terhubung langsung dengan API resmi TikTok, Instagram, dan YouTube Shorts untuk publikasi otomatis dari komputer.
 
 Jangan ragu untuk membuat *Pull Request* atau membuka *Issue* di repositori **[brillianodhiya/AutoVideo-RVC](https://github.com/brillianodhiya/AutoVideo-RVC)** untuk mengajukan fitur baru atau melaporkan bug!
 
