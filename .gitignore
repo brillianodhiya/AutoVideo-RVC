@@ -1,0 +1,66 @@
+# ====================================================================
+# Git Ignore Configuration: AI Auto-Editor Video (RVC & Dual-Product)
+# ====================================================================
+
+# Python Caches & Compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Virtual Environment
+venv/
+.venv/
+env/
+ENV/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Node.js (tesseract.js dependencies)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Heavy asset directories (B-roll & BGM)
+# Raw video clips should not be pushed to GitHub due to size
+video_input/
+music_input/
+gambar_input/
+context/
+
+# Machine learning / RVC models and indices (very heavy files, >100MB each)
+# Models should be downloaded separately and placed in RVC/
+RVC/
+
+# Output directories
+# Ignore rendered final MP4s
+output/
+
+# Temporary Voiceover and Subtitle caches generated during rendering
+temp_vo_*
+temp_sub_*
+temp_vo.mp3
+temp_vo.wav
+temp_sub.vtt
+*_temp_raw.mp3
+*_temp_raw.wav
+input_naskah.txt
+*TEMP_MPY_*
+
+# IDE / Editor specific configurations
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS metadata
+.DS_Store
+Thumbs.db
+desktop.ini
