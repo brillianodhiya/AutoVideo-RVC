@@ -66,3 +66,8 @@ workspace_profiles.json
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# PyInstaller compilation output
+build/
+dist/
+*.spec
