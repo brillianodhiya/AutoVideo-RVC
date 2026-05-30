@@ -197,6 +197,7 @@ Proyek ini bersifat open-source! Kontribusi untuk pengembangan fitur baru atau p
   * [ ] Portable Windows Standalone Installer & `.exe`
   * [ ] Lightweight Linux AppImage & executable binary
   * [ ] Fully packaged macOS `.dmg` installer & `.app` bundle
+  * [ ] **Smart Setup Wizard**: Installer ringan (~100MB) dengan pendeteksi otomatis spesifikasi perangkat pengguna, serta fitur unduhan *on-demand* untuk library PyTorch/CUDA sesuai kebutuhan secara latar belakang (lazy loading).
 * [ ] **🎨 SaaS-Themed Iconography & Logo Update**: Pembaruan paket ikon antarmuka dan logo aplikasi bergaya minimalis modern.
 * [ ] **☁️ Cloud Trainer Bridge (Colab Optimization)**: Penyempurnaan alur ekspor dataset satu klik dan stabilitas lingkungan Google Colab.
 
