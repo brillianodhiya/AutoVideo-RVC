@@ -7,7 +7,7 @@
 
 **AutoVideo-RVC** adalah generator video pendek vertikal (9:16) otomatis untuk TikTok, Instagram Reels, dan YouTube Shorts yang berjalan 100% lokal. 
 
-Aplikasi ini menggabungkan **Edge-TTS** (audio narasi), **RVC V2** terakselerasi GPU NVIDIA (CUDA) untuk mengubah vokal secara offline, **Pillow** untuk me-render subtitle dinamis, dan **MoviePy** untuk penyusunan klip B-roll tanpa adegan ganda.
+Aplikasi ini menggabungkan **Edge-TTS** (audio narasi), **RVC V2** yang diakselerasi GPU NVIDIA (CUDA) untuk mengubah vokal secara offline, **Pillow** untuk me-render subtitle dinamis, dan **MoviePy** untuk penyusunan klip B-roll tanpa adegan ganda.
 
 ---
 
