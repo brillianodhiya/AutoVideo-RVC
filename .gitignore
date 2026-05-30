@@ -39,6 +39,7 @@ RVC/
 # Output directories
 # Ignore rendered final MP4s
 output/
+OutputGuiTest/
 
 # Temporary Voiceover and Subtitle caches generated during rendering
 temp_vo_*
@@ -50,6 +51,7 @@ temp_sub.vtt
 *_temp_raw.wav
 input_naskah.txt
 *TEMP_MPY_*
+workspace_profiles.json
 
 # IDE / Editor specific configurations
 .vscode/

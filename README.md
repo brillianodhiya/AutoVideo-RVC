@@ -36,6 +36,16 @@ graph TD
 
 ---
 
+## 🖥️ AutoVideo-RVC Studio: Aplikasi Desktop & AI Copywriter Studio
+
+AutoVideo-RVC kini dilengkapi dengan **Aplikasi Desktop Premium** berbasis **PySide6 (Qt6)** dengan desain *Dark Glassmorphism* modern. Aplikasi ini memberikan kontrol penuh tanpa kode (*no-code*) untuk:
+* **✍️ AI Copywriter Studio:** Mengintegrasikan **Gemini API, OpenRouter, dan Ollama lokal** untuk menyusun puluhan naskah promosi secara dinamis menggunakan framework copywriting standar emas (**AIDA, PAS, FAB, BAB**).
+* **🎨 Live Layout Editor (9:16 Canvas Simulator):** Kustomisasi font subtitle (.ttf), warna font (kuning, putih, hijau neon, cyan), tebal stroke, dan slider posisi vertical tinggi teks subtitle, serta mengunggah logo watermark PNG dengan slider opacity kustom dan jenis transisi video (**Fade In/Out, CrossFade**).
+* **🎙️ RVC Settings & Trainer:** Setelan pitch, index, dan jembatan ekspor dataset RVC ke Google Colab secara langsung.
+* **🚀 Background Batch Renderer:** Menjalankan komposisi MoviePy di background thread (**QThread**) agar antarmuka tidak freeze, lengkap dengan progress bar dan terminal konsol retro hijau.
+
+---
+
 ## 🛠️ Panduan Instalasi (Lokal Windows/Python 3.12)
 
 Menginstal RVC dan dependensi AI secara lokal pada Python 3.12 dapat menjadi tantangan karena beberapa library machine learning membutuhkan penyesuaian khusus. Ikuti langkah-langkah di bawah ini:
@@ -112,13 +122,18 @@ AutoVideo-RVC/
 
 ---
 
-## 🚀 Cara Menjalankan Rendering Massal
+## 🚀 Cara Menjalankan Aplikasi
 
-### Langkah 1: Siapkan Konfigurasi Naskah
-Buka file `batch_generator.py`, sesuaikan daftar naskah dan alokasi video pada array `VIDEOS_CONFIG`.
+Anda dapat menggunakan platform ini baik melalui **Antarmuka Grafis (Desktop GUI App)** maupun melalui **Command Line (CLI Script)** secara langsung:
 
-### Langkah 2: Jalankan Generator!
-Jalankan program utama melalui terminal dengan virtual environment yang sudah aktif:
+### 🖥️ A. Menjalankan Versi Desktop GUI (Sangat Direkomendasikan)
+Menyediakan antarmuka visual penuh untuk melakukan generate naskah, menyunting layout visual, setelan RVC, dan memantau rendering massal secara instan:
+```bash
+python app_gui.py
+```
+
+### 💻 B. Menjalankan Versi CLI (Batch Script)
+Untuk memproses naskah bawaan secara langsung dari terminal:
 ```bash
 python batch_generator.py
 ```

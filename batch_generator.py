@@ -25,6 +25,21 @@ except ImportError as e:
 
 import edge_tts
 
+try:
+    from moviepy.video.fx import FadeIn, FadeOut, CrossFadeIn
+except ImportError:
+    try:
+        from moviepy.video.fx.fadein import fadein
+        from moviepy.video.fx.fadeout import fadeout
+        from moviepy.video.fx.crossfadein import crossfadein
+        def FadeIn(duration): return lambda clip: fadein(clip, duration)
+        def FadeOut(duration): return lambda clip: fadeout(clip, duration)
+        def CrossFadeIn(duration): return lambda clip: crossfadein(clip, duration)
+    except ImportError:
+        FadeIn = None
+        FadeOut = None
+        CrossFadeIn = None
+
 # Cek apakah rvc-python terinstal untuk akselerasi GPU Furina RVC
 RVC_ENABLED = False
 try:
@@ -46,6 +61,8 @@ FONTS_DIR = os.path.join(BASE_DIR, "fonts")
 # RVC Model Furina
 RVC_MODEL_PATH = os.path.join(BASE_DIR, "RVC", "Furina", "Furina_e170_s54910.pth")
 RVC_INDEX_PATH = os.path.join(BASE_DIR, "RVC", "Furina", "added_IVF4312_Flat_nprobe_1_Furina_v2.index")
+RVC_PITCH_SHIFT = 6
+RVC_INDEX_RATE = 0.2
 
 # Resolusi standard portrait 9:16 untuk Reels/Shorts/TikTok
 OUTPUT_W = 1080
@@ -350,9 +367,9 @@ def wrap_text(text, font, max_width):
         lines.append(" ".join(current_line))
     return lines
 
-def buat_subtitle_overlay_clip(subs, video_w, video_h):
+def buat_subtitle_overlay_clip(subs, video_w, video_h, font_size_scale=0.052, text_color=(255, 255, 0, 255), stroke_width_scale=0.12, stroke_color=(0, 0, 0, 255), vertical_position=0.74):
     font_path = dapatkan_font_path()
-    font_size = int(video_w * 0.052) # 5.2% dari lebar video
+    font_size = int(video_w * font_size_scale)
     
     if font_path:
         font = ImageFont.truetype(font_path, font_size)
@@ -381,8 +398,8 @@ def buat_subtitle_overlay_clip(subs, video_w, video_h):
         line_spacing = int(font_size * 0.2)
         total_h = sum(line_heights) + (len(lines) - 1) * line_spacing
         
-        # Posisikan center secara vertikal di 74% tinggi video
-        current_y = int(video_h * 0.74) - (total_h // 2)
+        # Posisikan center secara vertikal di vertical_position% tinggi video
+        current_y = int(video_h * vertical_position) - (total_h // 2)
         
         for idx_line, line in enumerate(lines):
             if hasattr(draw, "textbbox"):
@@ -398,17 +415,19 @@ def buat_subtitle_overlay_clip(subs, video_w, video_h):
                 (x, current_y), 
                 line, 
                 font=font, 
-                fill=(255, 255, 0, 255), # Kuning cerah
-                stroke_width=int(font_size * 0.12), 
-                stroke_fill=(0, 0, 0, 255)
+                fill=text_color, 
+                stroke_width=int(font_size * stroke_width_scale), 
+                stroke_fill=stroke_color
             )
             current_y += line_h + line_spacing
         
         rgba_np = np.array(img)
         rgb_np = rgba_np[:, :, :3]
-        alpha_np = rgba_np[:, :, 3] / 255.0
+        alpha_np = (rgba_np[:, :, 3] / 255.0).astype(np.float32)
         
-        txt_clip = ImageClip(rgb_np).with_mask(ImageClip(alpha_np).with_is_mask(True))
+        # Simpan reference mask agar bisa ditutup secara manual nanti demi menghemat RAM
+        mask_clip = ImageClip(alpha_np).with_is_mask(True)
+        txt_clip = ImageClip(rgb_np).with_mask(mask_clip)
         txt_clip = txt_clip.with_start(start).with_end(end)
         overlay_clips.append(txt_clip)
         
@@ -417,7 +436,7 @@ def buat_subtitle_overlay_clip(subs, video_w, video_h):
 # ==========================================
 # DYNAMIC VIDEO STITCHER (MoviePy 2.x compatible)
 # ==========================================
-def buat_video_assembly(target_duration, raw_video_paths):
+def buat_video_assembly(target_duration, raw_video_paths, transition_type="None", transition_duration=0.5):
     # Pisahkan klip yang menampilkan botol produk/aksi berdasarkan kata kunci utama (produk, product, poc, perisai, infarm)
     keywords = ["produk", "product", "poc", "perisai", "infarm"]
     product_clips = [p for p in raw_video_paths if any(k in os.path.basename(p).lower() for k in keywords)]
@@ -453,57 +472,126 @@ def buat_video_assembly(target_duration, raw_video_paths):
         random.shuffle(selected_paths)
         
     clips = []
-    current_duration = 0.0
+    running_composite_duration = 0.0
+    opened_raw_clips = []
     
     # Gunakan pool agar tidak ada duplikasi scene kecuali terpaksa karena klip unik habis
     pool = list(selected_paths)
     last_path = None
     
-    while current_duration < target_duration:
-        if not pool:
-            # Jika semua klip unik sudah dipakai, lakukan isi ulang (reuse)
-            pool = list(selected_paths)
-            random.shuffle(pool)
-            # Cegah klip berulang berturut-turut (back-to-back)
-            if len(pool) > 1 and pool[0] == last_path:
-                pool.append(pool.pop(0))
+    try:
+        while running_composite_duration < target_duration:
+            if not pool:
+                # Jika semua klip unik sudah dipakai, lakukan isi ulang (reuse)
+                pool = list(selected_paths)
+                random.shuffle(pool)
+                # Cegah klip berulang berturut-turut (back-to-back)
+                if len(pool) > 1 and pool[0] == last_path:
+                    pool.append(pool.pop(0))
+                    
+            path = pool.pop(0)
+            last_path = path
+            
+            try:
+                clip = VideoFileClip(path)
+                opened_raw_clips.append(clip)
+                clip_duration = clip.duration
                 
-        path = pool.pop(0)
-        last_path = path
-        
-        try:
-            clip = VideoFileClip(path)
-            clip_duration = clip.duration
+                # Potong klip mentah secara acak antara 2.5 sampai 4.2 detik
+                if clip_duration > 5.5:
+                    start_time = random.uniform(1.0, clip_duration - 4.5)
+                    if clips and transition_type == "CrossFade":
+                        net_needed = target_duration - running_composite_duration
+                        duration_needed = min(random.uniform(2.5, 4.2), net_needed + transition_duration)
+                    else:
+                        duration_needed = min(random.uniform(2.5, 4.2), target_duration - running_composite_duration)
+                    sub_clip = clip.subclipped(start_time, start_time + duration_needed)
+                else:
+                    if clips and transition_type == "CrossFade":
+                        net_needed = target_duration - running_composite_duration
+                        duration_needed = min(clip_duration, net_needed + transition_duration)
+                    else:
+                        duration_needed = min(clip_duration, target_duration - running_composite_duration)
+                    sub_clip = clip.subclipped(0, duration_needed)
+                
+                sub_clip = sub_clip.without_audio()
+                
+                # Resize & Crop ke Portrait
+                clip_w, clip_h = sub_clip.size
+                scale = max(OUTPUT_W / clip_w, OUTPUT_H / clip_h)
+                new_w = int(clip_w * scale)
+                new_h = int(clip_h * scale)
+                
+                sub_clip = sub_clip.resized(new_size=(new_w, new_h))
+                x1 = (new_w - OUTPUT_W) // 2
+                y1 = (new_h - OUTPUT_H) // 2
+                sub_clip = sub_clip.cropped(x1=x1, y1=y1, width=OUTPUT_W, height=OUTPUT_H)
+                
+                # Apply Fade In/Out if transition_type == "Fade In/Out"
+                if transition_type == "Fade In/Out" and FadeIn and FadeOut:
+                    try:
+                        fdur = min(transition_duration, sub_clip.duration / 2.0)
+                        if callable(FadeIn) and callable(FadeOut):
+                            sub_clip = sub_clip.with_effects([FadeIn(fdur), FadeOut(fdur)])
+                        else:
+                            sub_clip = sub_clip.fadein(fdur).fadeout(fdur)
+                    except Exception as e:
+                        print(f"[WARNING] Gagal menerapkan Fade In/Out: {e}")
+                
+                clips.append(sub_clip)
+                
+                # Calculate net running duration
+                if len(clips) == 1:
+                    running_composite_duration = sub_clip.duration
+                else:
+                    if transition_type == "CrossFade":
+                        running_composite_duration += sub_clip.duration - transition_duration
+                    else:
+                        running_composite_duration += sub_clip.duration
+            except Exception as e:
+                print(f"[WARNING] Gagal memproses klip {path}: {str(e)}")
+                continue
+    except Exception as e:
+        # Jika terjadi error saat memotong klip, tutup semua VideoFileClip yang terlanjur dibuka
+        for c in opened_raw_clips:
+            try: c.close()
+            except: pass
+        raise e
             
-            # Potong klip mentah secara acak antara 2.5 sampai 4.2 detik
-            if clip_duration > 5.5:
-                start_time = random.uniform(1.0, clip_duration - 4.5)
-                duration_needed = min(random.uniform(2.5, 4.2), target_duration - current_duration)
-                sub_clip = clip.subclipped(start_time, start_time + duration_needed)
-            else:
-                duration_needed = min(clip_duration, target_duration - current_duration)
-                sub_clip = clip.subclipped(0, duration_needed)
-            
-            sub_clip = sub_clip.without_audio()
-            
-            # Resize & Crop ke Portrait
-            clip_w, clip_h = sub_clip.size
-            scale = max(OUTPUT_W / clip_w, OUTPUT_H / clip_h)
-            new_w = int(clip_w * scale)
-            new_h = int(clip_h * scale)
-            
-            sub_clip = sub_clip.resized(new_size=(new_w, new_h))
-            x1 = (new_w - OUTPUT_W) // 2
-            y1 = (new_h - OUTPUT_H) // 2
-            sub_clip = sub_clip.cropped(x1=x1, y1=y1, width=OUTPUT_W, height=OUTPUT_H)
-            
-            clips.append(sub_clip)
-            current_duration += sub_clip.duration
-        except Exception as e:
-            print(f"[WARNING] Gagal memproses klip {path}: {str(e)}")
-            continue
-            
-    return concatenate_videoclips(clips, method="compose")
+    # Concatenate or Composite depending on transition type
+    try:
+        if transition_type == "CrossFade" and CrossFadeIn:
+            composite_clips = []
+            current_time = 0.0
+            for i, clip in enumerate(clips):
+                if i == 0:
+                    clip = clip.with_start(0)
+                    composite_clips.append(clip)
+                    current_time = clip.duration
+                else:
+                    overlap = min(transition_duration, clip.duration, composite_clips[-1].duration)
+                    start_time = current_time - overlap
+                    try:
+                        if callable(CrossFadeIn):
+                            clip = clip.with_effects([CrossFadeIn(overlap)])
+                        else:
+                            clip = clip.crossfadein(overlap)
+                    except Exception as e:
+                        print(f"[WARNING] Gagal menerapkan crossfadein: {e}")
+                    
+                    clip = clip.with_start(start_time)
+                    composite_clips.append(clip)
+                    current_time = start_time + clip.duration
+            res = CompositeVideoClip(composite_clips, size=(OUTPUT_W, OUTPUT_H))
+        else:
+            res = concatenate_videoclips(clips, method="compose")
+        res.opened_raw_clips = opened_raw_clips
+        return res
+    except Exception as e:
+        for c in opened_raw_clips:
+            try: c.close()
+            except: pass
+        raise e
 
 # ==========================================
 # ASYNC EDGE-TTS & RVC GENERATOR
@@ -532,10 +620,11 @@ async def generate_voiceover_rvc(text, audio_out, vtt_out):
     temp_mp3_clip.write_audiofile(temp_raw_wav, fps=44100, logger=None)
     temp_mp3_clip.close()
     
-    # 2. Konversi menggunakan RVC Furina (RTX 3060 CUDA) jika modul & file lengkap
+    # 2. Konversi menggunakan RVC (RTX 3060 CUDA) jika modul & file lengkap
     rvc_success = False
     if RVC_ENABLED and os.path.exists(RVC_MODEL_PATH):
-        print(" -> Mengonversi suara ke Furina RVC via GPU RTX 3060...")
+        model_name = os.path.basename(RVC_MODEL_PATH).replace(".pth", "")
+        print(f" -> Mengonversi suara ke {model_name} RVC via GPU RTX 3060...")
         try:
             rvc_inf = RVCInference(
                 device="cuda:0",
@@ -543,12 +632,12 @@ async def generate_voiceover_rvc(text, audio_out, vtt_out):
                 index_path=RVC_INDEX_PATH if os.path.exists(RVC_INDEX_PATH) else "",
                 version="v2"
             )
-            # Furina (Jepang): f0up_key=6 untuk vokal imut bergaya anime, index_rate=0.2 untuk mempertahankan kesempurnaan logat Indonesia GadisNeural
-            rvc_inf.set_params(f0up_key=6, f0method="rmvpe", index_rate=0.2, protect=0.33)
+            # Konfigurasi parameter pitch shift (f0up_key) dan index rate dinamis dari setelan GUI / global
+            rvc_inf.set_params(f0up_key=RVC_PITCH_SHIFT, f0method="rmvpe", index_rate=RVC_INDEX_RATE, protect=0.33)
             rvc_inf.infer_file(temp_raw_wav, audio_out)
             rvc_inf.unload_model()
             rvc_success = True
-            print(" -> [SUCCESS] Konversi RVC Furina Berhasil!")
+            print(f" -> [SUCCESS] Konversi RVC {model_name} Berhasil!")
         except Exception as e:
             print(f"[WARNING] Konversi RVC Gagal: {str(e)}. Menggunakan suara default perempuan.")
             
@@ -626,77 +715,113 @@ def run_batch():
         temp_audio = os.path.join(BASE_DIR, f"temp_vo_{idx}.wav") # WAV untuk kualitas RVC optimal
         temp_vtt = os.path.join(BASE_DIR, f"temp_sub_{idx}.vtt")
         
-        # A. Buat Voiceover (RVC Furina atau Perempuan Natural)
-        asyncio.run(generate_voiceover_rvc(naskah, temp_audio, temp_vtt))
+        # Inisialisasi variabel agar aman ditutup di blok finally jika terjadi crash
+        vo_audio = None
+        bgm_audio = None
+        mixed_audio = None
+        compiled_video = None
+        subtitle_clips = []
+        final_video = None
         
-        vo_audio = AudioFileClip(temp_audio)
-        target_duration = vo_audio.duration
-        print(f" -> Voiceover berhasil disiapkan. Durasi: {target_duration:.2f} detik.")
-        
-        # B. Susun Video B-Roll khusus produk tersebut
-        compiled_video = buat_video_assembly(target_duration, product_video_paths)
-        
-        # C. Buat Subtitle Overlay (Montserrat-Bold otomatis!)
-        raw_subs = parse_vtt(temp_vtt)
-        # Tampilkan subtitle maks 2 kata per tampilan agar pas saat diucapkan (dinamika tinggi!)
-        grouped_subs = kelompokkan_subtitle(raw_subs, max_words=2, max_duration=1.2)
-        subtitle_clips = buat_subtitle_overlay_clip(grouped_subs, OUTPUT_W, OUTPUT_H)
-        
-        # D. Gabungkan Subtitle di atas Video
-        final_video = CompositeVideoClip([compiled_video] + subtitle_clips)
-        
-        # E. Audio Mixing dengan Background Music Acak
-        if bgm_paths:
-            chosen_bgm = random.choice(bgm_paths)
-            print(f" -> Menggunakan musik latar acak: {os.path.basename(chosen_bgm)}")
-            bgm_audio = AudioFileClip(chosen_bgm)
+        try:
+            # A. Buat Voiceover (RVC Furina atau Perempuan Natural)
+            asyncio.run(generate_voiceover_rvc(naskah, temp_audio, temp_vtt))
             
-            if bgm_audio.duration < target_duration:
-                bgm_audio = bgm_audio.with_effects([AudioLoop(duration=target_duration)])
-            else:
-                bgm_audio = bgm_audio.subclipped(0, target_duration)
+            vo_audio = AudioFileClip(temp_audio)
+            target_duration = vo_audio.duration
+            print(f" -> Voiceover berhasil disiapkan. Durasi: {target_duration:.2f} detik.")
+            
+            # B. Susun Video B-Roll khusus produk tersebut
+            compiled_video = buat_video_assembly(target_duration, product_video_paths)
+            
+            # C. Buat Subtitle Overlay (Montserrat-Bold otomatis!)
+            raw_subs = parse_vtt(temp_vtt)
+            # Tampilkan subtitle maks 2 kata per tampilan agar pas saat diucapkan (dinamika tinggi!)
+            grouped_subs = kelompokkan_subtitle(raw_subs, max_words=2, max_duration=1.2)
+            subtitle_clips = buat_subtitle_overlay_clip(grouped_subs, OUTPUT_W, OUTPUT_H)
+            
+            # D. Gabungkan Subtitle di atas Video
+            final_video = CompositeVideoClip([compiled_video] + subtitle_clips)
+            
+            # E. Audio Mixing dengan Background Music Acak
+            if bgm_paths:
+                chosen_bgm = random.choice(bgm_paths)
+                print(f" -> Menggunakan musik latar acak: {os.path.basename(chosen_bgm)}")
+                bgm_audio = AudioFileClip(chosen_bgm)
                 
-            # Set volume musik latar sangat rendah (8%)
-            bgm_audio = bgm_audio.with_volume_scaled(0.08)
-            mixed_audio = CompositeAudioClip([vo_audio.with_volume_scaled(1.0), bgm_audio])
-        else:
-            mixed_audio = vo_audio
+                if bgm_audio.duration < target_duration:
+                    bgm_audio = bgm_audio.with_effects([AudioLoop(duration=target_duration)])
+                else:
+                    bgm_audio = bgm_audio.subclipped(0, target_duration)
+                    
+                # Set volume musik latar sangat rendah (8%)
+                bgm_audio = bgm_audio.with_volume_scaled(0.08)
+                mixed_audio = CompositeAudioClip([vo_audio.with_volume_scaled(1.0), bgm_audio])
+            else:
+                mixed_audio = vo_audio
+                
+            final_video = final_video.with_audio(mixed_audio)
             
-        final_video = final_video.with_audio(mixed_audio)
-        
-        # F. Rendering Hasil Akhir
-        product_clean_name = product_name.replace(" ", "_")
-        output_path = os.path.join(OUTPUT_DIR, f"{product_clean_name}_{category}_{idx}.mp4")
-        print(f" -> Merender file final ke: {output_path}...")
-        
-        final_video.write_videofile(
-            output_path,
-            fps=24,
-            codec="libx264",
-            audio_codec="aac",
-            threads=4,
-            logger=None # Matikan logger detail agar konsol bersih dan rapi
-        )
-        
-        # Bersihkan resource
-        vo_audio.close()
-        if bgm_paths:
-            bgm_audio.close()
-        compiled_video.close()
-        final_video.close()
-        
-        # Hapus file temporary
-        for temp_file in [temp_audio, temp_vtt]:
-            if os.path.exists(temp_file):
+            # F. Rendering Hasil Akhir
+            product_clean_name = product_name.replace(" ", "_")
+            output_path = os.path.join(OUTPUT_DIR, f"{product_clean_name}_{category}_{idx}.mp4")
+            print(f" -> Merender file final ke: {output_path}...")
+            
+            final_video.write_videofile(
+                output_path,
+                fps=24,
+                codec="libx264",
+                audio_codec="aac",
+                threads=4,
+                logger=None # Matikan logger detail agar konsol bersih dan rapi
+            )
+            print(f"[SUCCESS] Video {idx} selesai dibuat!")
+        except Exception as e:
+            print(f"[ERROR] Gagal memproses Video {idx}: {str(e)}")
+            raise e
+        finally:
+            # G. MEMBERSIHKAN MEMORI SECARA TOTAL (Anti-Memory Leak & GC Force)
+            if vo_audio:
+                try: vo_audio.close()
+                except: pass
+            if bgm_audio:
+                try: bgm_audio.close()
+                except: pass
+            if mixed_audio and mixed_audio is not vo_audio:
+                try: mixed_audio.close()
+                except: pass
+            
+            if compiled_video:
+                # Tutup semua raw VideoFileClips yang dibuka di buat_video_assembly
+                for raw_c in getattr(compiled_video, 'opened_raw_clips', []):
+                    try: raw_c.close()
+                    except: pass
+                try: compiled_video.close()
+                except: pass
+                
+            for sub_clip in subtitle_clips:
                 try:
-                    os.remove(temp_file)
-                except:
-                    pass
+                    if sub_clip.mask:
+                        sub_clip.mask.close()
+                    sub_clip.close()
+                except: pass
+                
+            if final_video:
+                try: final_video.close()
+                except: pass
+                
+            # Hapus file temporary
+            for temp_file in [temp_audio, temp_vtt]:
+                if os.path.exists(temp_file):
+                    try: os.remove(temp_file)
+                    except: pass
             
-        print(f"[SUCCESS] Video {idx} selesai dibuat!")
+            # Paksa Garbage Collector membersihkan memori NumPy & PIL
+            import gc
+            gc.collect()
 
     print("\n" + "="*75)
-    print("      🎉 SELURUH 40 VIDEO DUAL-PRODUK BERHASIL DI-RENDER OTOMATIS!")
+    print("      [SUCCESS] SELURUH 40 VIDEO DUAL-PRODUK BERHASIL DI-RENDER OTOMATIS!")
     print(f"      Silakan cek folder hasil: {OUTPUT_DIR}")
     print("="*75 + "\n")
 
