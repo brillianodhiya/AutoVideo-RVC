@@ -1867,18 +1867,17 @@ class MainWindow(QMainWindow):
             
     def open_google_colab_rvc(self):
         import webbrowser
-        # Buka Google Drive agar pengguna bisa langsung drag-and-drop berkas notebook kustomnya
-        webbrowser.open("https://drive.google.com/")
+        # Buka Google Colaboratory langsung dengan file yang ter-link ke GitHub Anda!
+        colab_url = "https://colab.research.google.com/github/brillianodhiya/AutoVideo-RVC/blob/main/RVC_Colab_Trainer.ipynb"
+        webbrowser.open(colab_url)
         QMessageBox.information(
-            self, "Cloud Trainer Kustom Anda Siap! ☁️", 
-            "Kami telah membuat berkas notebook Google Colab kustom untuk Anda di dalam workspace:\n"
-            "📄 RVC_Colab_Trainer.ipynb\n\n"
-            "Notebook ini dirancang khusus step-by-step dengan 'Pre-compiled Wheels' sehingga dijamin 100% bebas dari kesalahan 'fairseq ModuleNotFoundError'.\n\n"
+            self, "Cloud Trainer Instan Aktif! ☁️", 
+            "Luar biasa! Kami baru saja membuka berkas notebook Google Colab kustom Anda langsung dari GitHub:\n\n"
+            "🌐 RVC_Colab_Trainer.ipynb (AutoVideo-RVC)\n\n"
             "Langkah Penggunaan:\n"
-            "1. Kami baru saja membuka Google Drive Anda di browser.\n"
-            "2. Unggah/seret (drag & drop) berkas 'RVC_Colab_Trainer.ipynb' di folder proyek Anda ke Google Drive.\n"
-            "3. Klik kanan berkas tersebut di Google Drive, pilih 'Buka dengan' (Open with) > 'Google Colaboratory'.\n"
-            "4. Jalankan sel (Langkah 1, 2, 3) secara berurutan untuk menikmati stabilitas penuh!"
+            "1. Browser Anda baru saja membuka notebook Colab kustom Anda secara instan.\n"
+            "2. Cukup jalankan sel (Step 1, Step 2, Step 3, Step 4) secara berurutan.\n"
+            "3. Mekanisme 'Auto-Repair' dan 'Triple-Redundancy' kustom kita akan menangani semua instalasi secara instan tanpa error!"
         )
 
     # ==========================================
