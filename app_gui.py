@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (
     QTableWidget, QTableWidgetItem, QSpinBox, QDoubleSpinBox, 
     QSlider, QComboBox, QFileDialog, QMessageBox, QProgressBar, 
     QHeaderView, QFrame, QSplitter, QGroupBox, QStackedWidget,
-    QDialog, QDialogButtonBox
+    QDialog, QDialogButtonBox, QCheckBox
 )
 # pyrefly: ignore [missing-import]
 from PySide6.QtGui import QIcon, QFont, QColor
@@ -266,11 +266,13 @@ class RenderWorker(QThread):
                     # B. Assembly B-roll Video
                     self.status_signal.emit(" -> Menyusun klip B-roll dinamis (Anti-Duplikasi)...")
                     transition_type = self.layout_params.get("transition", "None")
+                    limit_to_3s = self.layout_params.get("limit_to_3s", False)
                     compiled_video = batch_generator.buat_video_assembly(
                         target_duration, 
                         product_video_paths, 
                         transition_type=transition_type, 
-                        transition_duration=0.5
+                        transition_duration=0.5,
+                        limit_to_3s=limit_to_3s
                     )
                     
                     # 4. Cooperative Stop / Pause check
@@ -798,6 +800,11 @@ class MainWindow(QMainWindow):
             self.bgm_vol_spin.setValue(prof["bgm_volume"])
         if "transition" in prof and hasattr(self, "transition_combo"):
             self.transition_combo.setCurrentText(prof["transition"])
+        if "limit_to_3s" in prof and hasattr(self, "limit_to_3s_checkbox"):
+            self.limit_to_3s_checkbox.setChecked(prof["limit_to_3s"])
+        else:
+            if hasattr(self, "limit_to_3s_checkbox"):
+                self.limit_to_3s_checkbox.setChecked(False)
             
         # Update/Reset naskah scripts list specific to this profile!
         if "scripts_list" in prof:
@@ -880,6 +887,8 @@ class MainWindow(QMainWindow):
             prof["bgm_volume"] = self.bgm_vol_spin.value()
         if hasattr(self, "transition_combo"):
             prof["transition"] = self.transition_combo.currentText()
+        if hasattr(self, "limit_to_3s_checkbox"):
+            prof["limit_to_3s"] = self.limit_to_3s_checkbox.isChecked()
             
         self.profiles_data["profiles"][name] = prof
         self.save_profiles_to_disk()
@@ -1720,6 +1729,11 @@ class MainWindow(QMainWindow):
         self.transition_combo.addItems(["None", "Fade In/Out", "CrossFade"])
         set_layout.addWidget(self.transition_combo)
         
+        # Max B-roll duration limit
+        set_layout.addSpacing(10)
+        self.limit_to_3s_checkbox = QCheckBox("Batasi Video Input Maksimal 3 Detik")
+        set_layout.addWidget(self.limit_to_3s_checkbox)
+        
         splitter.addWidget(settings_panel)
         
         # Panel Kanan: Canvas Simulator (9:16)
@@ -1977,7 +1991,8 @@ class MainWindow(QMainWindow):
             "subtitle_color": self.subtitle_color_combo.currentText(),
             "subtitle_size": self.subtitle_size_spin.value(),
             "subtitle_stroke": self.subtitle_stroke_spin.value(),
-            "subtitle_pos": self.subtitle_pos_slider.value()
+            "subtitle_pos": self.subtitle_pos_slider.value(),
+            "limit_to_3s": self.limit_to_3s_checkbox.isChecked()
         }
         
         folders_config = {

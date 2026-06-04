@@ -309,4 +309,27 @@ def dapatkan_style_sheet():
         color: #ffffff;
         font-weight: 600;
     }
+    
+    /* ---------------------------------------------------- */
+    /* CHECKBOX                                             */
+    /* ---------------------------------------------------- */
+    QCheckBox {
+        color: #e4e4e7;
+        spacing: 8px;
+        background: transparent;
+    }
+    QCheckBox::indicator {
+        width: 16px;
+        height: 16px;
+        border: 1px solid #27272a;
+        border-radius: 4px;
+        background-color: #09090b;
+    }
+    QCheckBox::indicator:unchecked:hover {
+        border: 1px solid #3f3f46;
+    }
+    QCheckBox::indicator:checked {
+        background-color: #2563eb;
+        border: 1px solid #3b82f6;
+    }
     """

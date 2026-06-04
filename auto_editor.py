@@ -269,7 +269,7 @@ def buat_subtitle_overlay_clip(subs, video_w, video_h):
 # ==========================================
 # 6. PENYUSUNAN VIDEO UTAMA (ASSEMBLY)
 # ==========================================
-def buat_video_assembly(target_duration, output_w, output_h):
+def buat_video_assembly(target_duration, output_w, output_h, limit_to_3s=False):
     video_extensions = ["*.mp4", "*.mov", "*.avi", "*.mkv"]
     raw_video_paths = []
     for ext in video_extensions:
@@ -296,13 +296,18 @@ def buat_video_assembly(target_duration, output_w, output_h):
                 clip = VideoFileClip(path)
                 clip_duration = clip.duration
                 
+                min_dur = 1.5 if limit_to_3s else 3.0
+                max_dur = 3.0 if limit_to_3s else 5.0
+                
                 # subclipped di MoviePy 2.x
-                if clip_duration > 6.0:
-                    start_time = random.uniform(1.0, clip_duration - 5.0)
-                    end_time = start_time + min(random.uniform(3.0, 5.0), target_duration - current_duration)
+                if clip_duration > (max_dur + 1.0):
+                    start_time = random.uniform(1.0, clip_duration - max_dur)
+                    end_time = start_time + min(random.uniform(min_dur, max_dur), target_duration - current_duration)
                     sub_clip = clip.subclipped(start_time, end_time)
                 else:
                     end_time = min(clip_duration, target_duration - current_duration)
+                    if limit_to_3s and end_time > 3.0:
+                        end_time = 3.0
                     sub_clip = clip.subclipped(0, end_time)
                 
                 sub_clip = sub_clip.without_audio()

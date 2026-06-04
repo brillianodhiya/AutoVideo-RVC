@@ -436,7 +436,7 @@ def buat_subtitle_overlay_clip(subs, video_w, video_h, font_size_scale=0.052, te
 # ==========================================
 # DYNAMIC VIDEO STITCHER (MoviePy 2.x compatible)
 # ==========================================
-def buat_video_assembly(target_duration, raw_video_paths, transition_type="None", transition_duration=0.5):
+def buat_video_assembly(target_duration, raw_video_paths, transition_type="None", transition_duration=0.5, limit_to_3s=False):
     # Pisahkan klip yang menampilkan botol produk/aksi berdasarkan kata kunci utama (produk, product, poc, perisai, infarm)
     keywords = ["produk", "product", "poc", "perisai", "infarm"]
     product_clips = [p for p in raw_video_paths if any(k in os.path.basename(p).lower() for k in keywords)]
@@ -497,14 +497,18 @@ def buat_video_assembly(target_duration, raw_video_paths, transition_type="None"
                 opened_raw_clips.append(clip)
                 clip_duration = clip.duration
                 
-                # Potong klip mentah secara acak antara 2.5 sampai 4.2 detik
-                if clip_duration > 5.5:
-                    start_time = random.uniform(1.0, clip_duration - 4.5)
+                # Tentukan batas durasi pemotongan klip
+                min_dur = 1.5 if limit_to_3s else 2.5
+                max_dur = 3.0 if limit_to_3s else 4.2
+                
+                # Potong klip mentah secara acak
+                if clip_duration > (max_dur + 1.3):
+                    start_time = random.uniform(1.0, clip_duration - (max_dur + 0.3))
                     if clips and transition_type == "CrossFade":
                         net_needed = target_duration - running_composite_duration
-                        duration_needed = min(random.uniform(2.5, 4.2), net_needed + transition_duration)
+                        duration_needed = min(random.uniform(min_dur, max_dur), net_needed + transition_duration)
                     else:
-                        duration_needed = min(random.uniform(2.5, 4.2), target_duration - running_composite_duration)
+                        duration_needed = min(random.uniform(min_dur, max_dur), target_duration - running_composite_duration)
                     sub_clip = clip.subclipped(start_time, start_time + duration_needed)
                 else:
                     if clips and transition_type == "CrossFade":
@@ -512,6 +516,9 @@ def buat_video_assembly(target_duration, raw_video_paths, transition_type="None"
                         duration_needed = min(clip_duration, net_needed + transition_duration)
                     else:
                         duration_needed = min(clip_duration, target_duration - running_composite_duration)
+                    
+                    if limit_to_3s and duration_needed > 3.0:
+                        duration_needed = 3.0
                     sub_clip = clip.subclipped(0, duration_needed)
                 
                 sub_clip = sub_clip.without_audio()
